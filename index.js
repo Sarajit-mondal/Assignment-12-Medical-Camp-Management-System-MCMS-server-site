@@ -10,9 +10,7 @@ const port = process.env.PORT || 8000
 
 // middleware
 const corsOptions = {
-  origin: [
-    'http://localhost:5173', 'http://localhost:5174'
-           ],
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
   optionSuccessStatus: 200,
 }
@@ -38,8 +36,7 @@ const verifyToken = async (req, res, next) => {
   })
 }
 
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@sarajit.dhxjgpp.mongodb.net/?retryWrites=true&w=majority&appName=sarajit`
+ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@sarajit.dhxjgpp.mongodb.net/?retryWrites=true&w=majority&appName=sarajit`
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -50,6 +47,9 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    // database collection
+    const database = client.db("CareCamp");
+    const dbAllCampCollection = database.collection("allCamp");
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -80,6 +80,12 @@ async function run() {
       }
     })
 
+    //get all camp data 
+   app.get('/allcamp',async(req,res) =>{
+    const result =await dbAllCampCollection.find().sort({"Participant Count": -1}).toArray()
+    res.send(result)
+   })
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
@@ -92,10 +98,10 @@ async function run() {
 run().catch(console.dir)
 
 app.get('/', (req, res) => {
-  res.send('Server is runing...')
+  res.send('Server is runing....')
 })
 app.get('/sarajit', (req, res) => {
-  res.send('my name is jit')
+  res.send('my name is sarajit')
 })
 
 app.listen(port, () => {
