@@ -99,6 +99,13 @@ async function run() {
     const result =await dbAllCampCollection.find().sort(sortWith).toArray()
     res.send(result)
    })
+   //get one data 
+   app.get('/campDetails/:id',async(req,res)=>{
+    const Id = req.params.id
+    const query = {_id: new ObjectId(Id)}
+    const result = await dbAllCampCollection.findOne(query);
+    res.send(result)
+   })
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
