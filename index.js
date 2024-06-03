@@ -80,9 +80,23 @@ async function run() {
       }
     })
 
-    //get all camp data 
+    //get all camp data with disending order 
    app.get('/allcamp',async(req,res) =>{
-    const result =await dbAllCampCollection.find().sort({"Participant Count": -1}).toArray()
+    const result =await dbAllCampCollection.find().sort({ParticipantCount: -1}).toArray()
+    res.send(result)
+   })
+    //get all available cams with sort 
+   app.get('/allavilableCamps',async(req,res) =>{
+    const sortValue = req.query.sortValue;
+    let sortWith = {}
+    if(sortValue === 'ParticipantCount'){
+      sortWith = {"ParticipantCount" : -1}
+    }else if(sortValue === 'CampFees'){
+      sortWith = {'CampFees' : -1}
+    }else if(sortValue === 'alphabetical'){
+      sortWith = {"CampName" : 1}
+    }
+    const result =await dbAllCampCollection.find().sort(sortWith).toArray()
     res.send(result)
    })
 
