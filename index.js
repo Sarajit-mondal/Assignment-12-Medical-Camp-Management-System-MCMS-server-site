@@ -4,7 +4,7 @@ const app = express()
 require('dotenv').config()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
+const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb')
 
 const port = process.env.PORT || 8000
 
@@ -48,8 +48,11 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // database collection
+    // database collection
+    // database collection
     const database = client.db("CareCamp");
     const dbAllCampCollection = database.collection("allCamp");
+    const dbUsersCollection = database.collection("users");
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -58,25 +61,13 @@ async function run() {
       })
       res.send({token})
     })
-    // Logout
-    app.get('/logout', async (req, res) => {
-      try {
-        res
-          .clearCookie('token', {
-            maxAge: 0,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-          })
-          .send({ success: true })
-        console.log('Logout successful')
-      } catch (err) {
-        res.status(500).send(err)
-      }
-    })
+   
 
+  // allcamp data
+  // allcamp data
+  // allcamp data
     //get all camp data with disending order 
-   app.get('/allcamp',verifyToken, async(req,res) =>{
-    console.log(req.user.email)
+   app.get('/allcamp', async(req,res) =>{
     const result =await dbAllCampCollection.find().sort({ParticipantCount: -1}).toArray()
     res.send(result)
    })
@@ -101,6 +92,29 @@ async function run() {
     const result = await dbAllCampCollection.findOne(query);
     res.send(result)
    })
+  // allcamp data
+  // allcamp data
+  // allcamp data
+  // set user in database
+  // set user in database
+  // set user in database
+  app.post('/users',async(req,res)=>{
+   const user = req.body;
+   const query = {email : user.email}
+   const isUser = await dbUsersCollection.findOne(query)
+   if(isUser) return isUser
+
+   const doc ={
+    ...user,
+    Timestamp : Date.now()
+   }
+   const result =await dbUsersCollection.insertOne(doc);
+  res.send(result)
+  })
+  // set user in database
+  // set user in database
+  // set user in database
+
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
