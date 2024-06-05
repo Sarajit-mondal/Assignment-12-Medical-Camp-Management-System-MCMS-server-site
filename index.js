@@ -1,10 +1,10 @@
 const express = require('express')
+const jwt = require('jsonwebtoken');
 const app = express()
 require('dotenv').config()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
-const jwt = require('jsonwebtoken')
 
 const port = process.env.PORT || 8000
 
@@ -21,14 +21,14 @@ app.use(cookieParser())
 
 // Verify Token Middleware
 const verifyToken = async (req, res, next) => {
-  const token = req.cookies?.token
-  console.log(token)
-  if (!token) {
+  
+  if (!req.headers.authorization) {
     return res.status(401).send({ message: 'unauthorized access' })
   }
+  console.log("veryvify token")
+  const token = req.headers.authorization.split('Bearer ')[1]
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      console.log(err)
       return res.status(401).send({ message: 'unauthorized access' })
     }
     req.user = decoded
@@ -56,13 +56,7 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '365d',
       })
-      res
-        .cookie('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        })
-        .send({ success: true })
+      res.send({token})
     })
     // Logout
     app.get('/logout', async (req, res) => {
@@ -81,7 +75,8 @@ async function run() {
     })
 
     //get all camp data with disending order 
-   app.get('/allcamp',async(req,res) =>{
+   app.get('/allcamp',verifyToken, async(req,res) =>{
+    console.log(req.user.email)
     const result =await dbAllCampCollection.find().sort({ParticipantCount: -1}).toArray()
     res.send(result)
    })
