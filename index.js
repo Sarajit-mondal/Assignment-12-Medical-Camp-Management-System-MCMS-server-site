@@ -53,6 +53,7 @@ async function run() {
     const database = client.db("CareCamp");
     const dbAllCampCollection = database.collection("allCamp");
     const dbUsersCollection = database.collection("users");
+    const dbRegistereduserCollection = database.collection("Resgistered_Users");
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -66,9 +67,14 @@ async function run() {
   // allcamp data
   // allcamp data
   // allcamp data
-    //get all camp data with disending order 
+    //get six camp data with disending order 
    app.get('/allcamp', async(req,res) =>{
-    const result =await dbAllCampCollection.find().sort({ParticipantCount: -1}).toArray()
+
+    const option = {
+      sort:{ParticipantCount: -1},
+      limit:6,
+    }
+    const result =await dbAllCampCollection.find({},option).toArray()
     res.send(result)
    })
     //get all available cams with sort 
@@ -111,9 +117,41 @@ async function run() {
    const result =await dbUsersCollection.insertOne(doc);
   res.send(result)
   })
+
+  //check role Organigear or Particpent
+  app.get('/user/:email',async(req,res)=>{
+    const query = {email:req.params.email}
+    const result = await dbUsersCollection.findOne(query)
+    res.send(result)
+  })
   // set user in database
   // set user in database
   // set user in database
+
+  //registered user on camp
+  //registered user on camp 
+  //registered user
+  //set registered user
+  app.post('/registerCamp',async(req,res)=>{
+    const userData = req.body;
+    const query = {_id : new ObjectId(userData.campId)}
+    
+    const participant =await dbAllCampCollection.findOne(query)
+     
+    const incress ={
+      $set:{ 
+    ParticipantCount : participant.ParticipantCount+1
+      }
+    }
+      const result =await dbRegistereduserCollection.insertOne(userData)
+      //incress Participant Count
+      await dbAllCampCollection.updateOne(query,incress)
+     res.send(result)
+  })
+
+  //registered user
+  //registered user
+  //registered user on camp
 
 
     // Send a ping to confirm a successful connection
@@ -130,10 +168,8 @@ run().catch(console.dir)
 app.get('/', (req, res) => {
   res.send('Server is runing....')
 })
-app.get('/sarajit', (req, res) => {
-  res.send('my name is sarajit')
-})
+           
 
 app.listen(port, () => {
-  console.log(`StayVista is running on port http://localhost:${port}`)
+  console.log(`careCamp is running on port http://localhost:${port}`)
 })
