@@ -80,6 +80,7 @@ async function run() {
     //get all available cams with sort 
    app.get('/allavilableCamps',async(req,res) =>{
     const sortValue = req.query.sortValue;
+    const userEmail = req.query.userEmail;
     let sortWith = {}
     if(sortValue === 'ParticipantCount'){
       sortWith = {"ParticipantCount" : -1}
@@ -88,7 +89,13 @@ async function run() {
     }else if(sortValue === 'alphabetical'){
       sortWith = {"CampName" : 1}
     }
-    const result =await dbAllCampCollection.find().sort(sortWith).toArray()
+    //get available data
+    const available =await dbRegistereduserCollection.find({ParticipantEmail:userEmail}).toArray()
+    //with out those data
+    const notAvailable = available.map(camp => camp.CampName);
+  
+
+    const result =await dbAllCampCollection.find({CampName:{$nin:notAvailable}}).sort(sortWith).toArray()
     res.send(result)
    })
    //get one data 
@@ -136,7 +143,6 @@ async function run() {
     const userData = req.body;
     const query = {_id : new ObjectId(userData.campId)}
     const queryEmail = {ParticipantEmail : userData.ParticipantEmail}
-    console.log(userData.ParticipantEmail)
     //check already register or not
     const alreadyUsers =await dbRegistereduserCollection.find(queryEmail).toArray()
     const alreadyRegister = alreadyUsers.filter(user => user.campId === userData.campId)
@@ -155,7 +161,6 @@ async function run() {
       await dbAllCampCollection.updateOne(query,incress)
      res.send(result)
   })
-
   //registered user
   //registered user
   //registered user on camp
