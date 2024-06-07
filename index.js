@@ -166,6 +166,19 @@ async function run() {
   //registered user on camp
 
 
+
+  // organigar work
+  // organigar work
+  // organigar work
+  // organigar work
+  // add new Camp
+  app.post('/addCamp',async(req,res)=>{
+    const campData = req.body;
+    const result = await dbAllCampCollection.insertOne(campData)
+    res.send(result)
+  
+  })
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
