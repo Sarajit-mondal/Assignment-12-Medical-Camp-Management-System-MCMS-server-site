@@ -77,6 +77,11 @@ async function run() {
     const result =await dbAllCampCollection.find({},option).toArray()
     res.send(result)
    })
+    //get allcampdata with disending order 
+   app.get('/allcampData', async(req,res) =>{
+    const result =await dbAllCampCollection.find().toArray()
+    res.send(result)
+   })
     //get all available cams with sort 
    app.get('/allavilableCamps',async(req,res) =>{
     const sortValue = req.query.sortValue;
@@ -103,6 +108,22 @@ async function run() {
     const Id = req.params.id
     const query = {_id: new ObjectId(Id)}
     const result = await dbAllCampCollection.findOne(query);
+    res.send(result)
+   })
+
+   //update camp
+   app.put('/updateCamp/:id',async(req,res) =>{
+    const updateData = req.body
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const options = { upsert: true };
+    // Specify the update to set a value for the plot field
+    const updateDoc = {
+      $set: {
+        ...updateData
+      },
+    };
+    const result = await dbAllCampCollection.updateOne(query,updateDoc,options)
     res.send(result)
    })
   // allcamp data
