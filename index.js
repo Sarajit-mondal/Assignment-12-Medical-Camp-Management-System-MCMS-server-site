@@ -126,6 +126,12 @@ async function run() {
     const result = await dbAllCampCollection.updateOne(query,updateDoc,options)
     res.send(result)
    })
+//delete camp
+app.delete('/campDelete/:id',async(req,res)=>{
+  const query = {_id: new ObjectId(req.params.id)}
+  const result =await dbAllCampCollection.deleteOne(query)
+  res.send(result)
+})
   // allcamp data
   // allcamp data
   // allcamp data
