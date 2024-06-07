@@ -135,16 +135,23 @@ async function run() {
   app.post('/registerCamp',async(req,res)=>{
     const userData = req.body;
     const query = {_id : new ObjectId(userData.campId)}
-    
+    const queryEmail = {ParticipantEmail : userData.ParticipantEmail}
+    console.log(userData.ParticipantEmail)
+    //check already register or not
+    const alreadyUsers =await dbRegistereduserCollection.find(queryEmail).toArray()
+    const alreadyRegister = alreadyUsers.filter(user => user.campId === userData.campId)
+    // if registered than return from here
+    if(alreadyRegister.length !== 0) return res.send(alreadyRegister)
+    //how many participant has 
     const participant =await dbAllCampCollection.findOne(query)
-     
+    //participant increace fild
     const incress ={
       $set:{ 
     ParticipantCount : participant.ParticipantCount+1
       }
     }
       const result =await dbRegistereduserCollection.insertOne(userData)
-      //incress Participant Count
+      //increase Participant Count
       await dbAllCampCollection.updateOne(query,incress)
      res.send(result)
   })
