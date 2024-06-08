@@ -158,6 +158,8 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const result = await dbUsersCollection.findOne(query)
     res.send(result)
   })
+
+ 
   // set user in database
   // set user in database
   // set user in database
@@ -188,6 +190,12 @@ app.delete('/campDelete/:id',async(req,res)=>{
       await dbAllCampCollection.updateOne(query,incress)
      res.send(result)
   })
+   //get my join camp
+   app.get('/myCamps/:email',async(req,res)=>{
+    const query = {ParticipantEmail : req.params.email }
+    const result = await dbRegistereduserCollection.find(query).toArray()
+    res.send(result)
+   })
   //registered user
   //registered user
   //registered user on camp
