@@ -55,6 +55,7 @@ async function run() {
     const dbUsersCollection = database.collection("users");
     const dbRegistereduserCollection = database.collection("Resgistered_Users");
     const dbBookingCollection = database.collection("BookingCollection");
+    const dbFeedbackCollection = database.collection("UserFeedback");
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -283,6 +284,21 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const result =await dbBookingCollection.find(query).toArray()
     res.send(result)
   })
+
+  ///feedback user
+  ///feedback user
+  ///feedback user
+  app.post('/feedback',async(req,res)=>{
+    const feedback  = req.body
+    const docs = {
+      ...feedback,
+      Timestamp : Date.now()
+    }
+
+    const reuslt =await dbFeedbackCollection.insertOne(docs)
+    res.send(reuslt)
+  })
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
