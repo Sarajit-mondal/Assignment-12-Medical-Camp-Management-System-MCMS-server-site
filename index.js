@@ -54,6 +54,7 @@ async function run() {
     const dbAllCampCollection = database.collection("allCamp");
     const dbUsersCollection = database.collection("users");
     const dbRegistereduserCollection = database.collection("Resgistered_Users");
+    const dbBookingCollection = database.collection("BookingCollection");
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -62,6 +63,7 @@ async function run() {
       })
       res.send({token})
     })
+   //create payment stripe
    //create payment stripe
    app.post('/create-payment-stripe',verifyToken,async(req,res)=>{
     const price = req.body.price;
@@ -78,6 +80,25 @@ async function run() {
     })
     //send client secret as respone
     res.send({clientSecret : client_secret})
+   })
+   //save booking data
+   //save booking data
+   //save booking data
+   app.post('/booking', verifyToken,async(req,res)=>{
+   const booking = req.body;
+   const result =await dbBookingCollection.insertOne(booking)
+   //update payment status Unpaid from paid
+   const query = {_id: new ObjectId(booking?.paymentCampId)}
+   const options = { upsert: true };
+   // Specify the update to set a value for the plot field
+   const updateDoc = {
+     $set: {
+       
+PaymentStatus : "Paid"
+     },
+   };
+   const update = await dbRegistereduserCollection.updateOne(query,updateDoc,options)
+   res.send(result)
    })
 
   // allcamp data
@@ -212,6 +233,8 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const result = await dbRegistereduserCollection.find(query).toArray()
     res.send(result)
    })
+   //pament Unpaid from paid
+   
   //registered user
   //registered user
   //registered user on camp
