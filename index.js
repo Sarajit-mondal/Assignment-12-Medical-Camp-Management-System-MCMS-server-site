@@ -257,6 +257,12 @@ app.delete('/campDelete/:id',async(req,res)=>{
   
   })
 
+  // get won payment history
+  app.get('/allMyPayments/:email',verifyToken,async(req,res)=>{
+    const query = {ParticipantEmail : req.params.email}
+    const result =await dbBookingCollection.find(query).toArray()
+    res.send(result)
+  })
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
