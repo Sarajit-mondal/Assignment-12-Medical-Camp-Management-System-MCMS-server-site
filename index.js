@@ -232,6 +232,11 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const result = await dbRegistereduserCollection.find(query).toArray()
     res.send(result)
    })
+   //get all register user
+   app.get('/allRegisterUser',verifyToken,async(req,res)=>{
+    const result = await dbRegistereduserCollection.find().toArray()
+    res.send(result)
+   })
    //delete register camp befor pay
    app.delete('/deleteRegisteredCamps/:id',verifyToken,async(req,res)=>{
     const query = {_id : new ObjectId(req?.params.id)}
