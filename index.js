@@ -298,6 +298,11 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const reuslt =await dbFeedbackCollection.insertOne(docs)
     res.send(reuslt)
   })
+ //get all user feedback with sort
+ app.get('/allReview/sort',async(req,res)=>{
+  const result = await dbFeedbackCollection.find().sort({Timestamp: -1}).toArray()
+  res.send(result)
+ })
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
