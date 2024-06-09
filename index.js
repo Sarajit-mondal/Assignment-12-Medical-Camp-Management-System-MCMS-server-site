@@ -93,8 +93,7 @@ async function run() {
    // Specify the update to set a value for the plot field
    const updateDoc = {
      $set: {
-       
-PaymentStatus : "Paid"
+      PaymentStatus : "Paid"
      },
    };
    const update = await dbRegistereduserCollection.updateOne(query,updateDoc,options)
@@ -233,7 +232,12 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const result = await dbRegistereduserCollection.find(query).toArray()
     res.send(result)
    })
-   //pament Unpaid from paid
+   //delete register camp befor pay
+   app.delete('/deleteRegisteredCamps/:id',verifyToken,async(req,res)=>{
+    const query = {_id : new ObjectId(req?.params.id)}
+    const result = await dbRegistereduserCollection.deleteOne(query)
+    res.send(result)
+   })
    
   //registered user
   //registered user
