@@ -243,6 +243,21 @@ app.delete('/campDelete/:id',async(req,res)=>{
     const result = await dbRegistereduserCollection.deleteOne(query)
     res.send(result)
    })
+
+   //update ConfirmationStatus status painding from Confirmed
+   app.patch('/StatusConfirmed/:id',verifyToken,async(req,res)=>{
+    const query = {_id: new ObjectId(req.params.id)}
+   const options = { upsert: true };
+   // Specify the update to set a value for the plot field
+
+   const updateDoc = {
+     $set: {
+      ConfirmationStatus : "Confirmed"
+     },
+   };
+   const update = await dbRegistereduserCollection.updateOne(query,updateDoc,options)
+   res.send(update)
+   })
    
   //registered user
   //registered user
