@@ -5,6 +5,7 @@ require('dotenv').config()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb')
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY )
 
 const port = process.env.PORT || 8000
 
@@ -25,7 +26,6 @@ const verifyToken = async (req, res, next) => {
   if (!req.headers.authorization) {
     return res.status(401).send({ message: 'unauthorized access' })
   }
-  console.log("veryvify token")
   const token = req.headers.authorization.split('Bearer ')[1]
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
@@ -62,7 +62,23 @@ async function run() {
       })
       res.send({token})
     })
-   
+   //create payment stripe
+   app.post('/create-payment-stripe',verifyToken,async(req,res)=>{
+    const price = req.body.price;
+    const priceInCent = parseFloat(price) * 100
+    if(!price || priceInCent < 1) return
+    //generate clientSecret
+    const {client_secret} = await stripe.paymentIntents.create({
+      amount: priceInCent,
+      currency: "usd",
+      // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    })
+    //send client secret as respone
+    res.send({clientSecret : client_secret})
+   })
 
   // allcamp data
   // allcamp data
