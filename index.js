@@ -119,14 +119,27 @@ async function run() {
     res.send(result)
    })
     //get allcampdata with disending order 
-   app.get('/allcampData', async(req,res) =>{
-    const result =await dbAllCampCollection.find().toArray()
-    res.send(result)
+   app.get('/allcampCount', async(req,res) =>{
+    const count =await dbAllCampCollection.countDocuments()
+    const registeredCount = await dbRegistereduserCollection.countDocuments()
+    const ParticipantCount = await dbUsersCollection.countDocuments()
+    const allMyPaymentsCount = await dbBookingCollection.countDocuments()
+    res.send({count,registeredCount,ParticipantCount,allMyPaymentsCount})
    })
-    //get all available cams with sort 
+   
+
+    //get all available cams with sort and search
    app.get('/allavilableCamps',async(req,res) =>{
     const sortValue = req.query.sortValue;
+    const SearchValue = req.query.searchValue;
+    //pagination
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const skip = (page -1) * limit
+    //pagination
+
     const userEmail = req.query.userEmail;
+    //sort queary
     let sortWith = {}
     if(sortValue === 'ParticipantCount'){
       sortWith = {"ParticipantCount" : -1}
@@ -135,13 +148,16 @@ async function run() {
     }else if(sortValue === 'alphabetical'){
       sortWith = {"CampName" : 1}
     }
+    //search quary
+  const searchQuery = new RegExp(SearchValue,'i')
+  const search = {CampName : {$regex:searchQuery}}
     //get available data
     const available =await dbRegistereduserCollection.find({ParticipantEmail:userEmail}).toArray()
     //with out those data
     const notAvailable = available.map(camp => camp.CampName);
   
 
-    const result =await dbAllCampCollection.find({CampName:{$nin:notAvailable}}).sort(sortWith).toArray()
+    const result =await dbAllCampCollection.find(search,{CampName :{$nin: notAvailable}}).sort(sortWith).skip(skip).limit(limit).toArray()
     res.send(result)
    })
    //get one data 
@@ -233,8 +249,13 @@ app.delete('/campDelete/:id',async(req,res)=>{
   })
    //get my join camp
    app.get('/myCamps/:email',async(req,res)=>{
+      //pagination
+      const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = (page -1) * limit
+      //pagination
     const query = {ParticipantEmail : req.params.email }
-    const result = await dbRegistereduserCollection.find(query).toArray()
+    const result = await dbRegistereduserCollection.find(query).skip(skip).limit(limit).toArray()
     res.send(result)
    })
    //get all register user
@@ -283,9 +304,14 @@ app.delete('/campDelete/:id',async(req,res)=>{
   })
 
   // get won payment history
-  app.get('/allMyPayments/:email',verifyToken,async(req,res)=>{
+  app.get('/allMyPayments/:email',async(req,res)=>{
+      //pagination
+      const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = (page -1) * limit
+      //pagination
     const query = {ParticipantEmail : req.params.email}
-    const result =await dbBookingCollection.find(query).toArray()
+    const result =await dbBookingCollection.find(query).skip(skip).limit(limit).toArray()
     res.send(result)
   })
 
@@ -327,3 +353,4 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`careCamp is running on port http://localhost:${port}`)
 })
+
