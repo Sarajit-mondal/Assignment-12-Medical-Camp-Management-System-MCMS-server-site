@@ -260,7 +260,27 @@ app.delete('/campDelete/:id',async(req,res)=>{
    })
    //get all register user
    app.get('/allRegisterUser',verifyToken,async(req,res)=>{
-    const result = await dbRegistereduserCollection.find().toArray()
+    const sortValue = req.query.sortValue;
+    const SearchValue = req.query.searchValue;
+      //pagination
+      const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = (page -1) * limit
+      //pagination
+      //sort queary
+    let sortWith = {}
+    if(sortValue === 'ParticipantCount'){
+      sortWith = {"ParticipantCount" : -1}
+    }else if(sortValue === 'CampFees'){
+      sortWith = {'CampFees' : -1}
+    }else if(sortValue === 'alphabetical'){
+      sortWith = {"CampName" : 1}
+    }
+    //search quary
+  const searchQuery = new RegExp(SearchValue,'i')
+  const search = {CampName : {$regex:searchQuery}}
+
+    const result = await dbRegistereduserCollection.find(search).sort(sortWith).skip(skip).limit(limit).toArray()
     res.send(result)
    })
    //delete register camp befor pay
