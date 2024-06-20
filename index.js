@@ -6,6 +6,8 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb')
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY )
+// const {default: axios} = require("axois")
+const axios = require('axios').default;
 
 const port = process.env.PORT || 8000
 
@@ -22,6 +24,7 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 app.use(express.json())
+app.use(express.urlencoded())
 app.use(cookieParser())
 
 // Verify Token Middleware
@@ -55,11 +58,13 @@ async function run() {
     // database collection
     // database collection
     const database = client.db("CareCamp");
+    const ssl = client.db("Ssl");
     const dbAllCampCollection = database.collection("allCamp");
     const dbUsersCollection = database.collection("users");
     const dbRegistereduserCollection = database.collection("Resgistered_Users");
     const dbBookingCollection = database.collection("BookingCollection");
     const dbFeedbackCollection = database.collection("UserFeedback");
+    const dbSslPaymentCollection = ssl.collection("SslPayment");
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -86,6 +91,106 @@ async function run() {
     //send client secret as respone
     res.send({clientSecret : client_secret})
    })
+   //create Sslcommerz payment
+   //create Sslcommerz payment
+   app.post('/create_payment',async(req,res)=>{
+    const paymentInfo = req.body;
+    const tranId = new ObjectId().toString()
+    const initiateData = {
+      store_id: process.env.SSLCOMMERZ_STORE_ID,
+      store_passwd: process.env.SSLCOMMERZ_STORE_PASS,
+      total_amount: paymentInfo.amount,
+      currency: "EUR",
+      tran_id: tranId,
+      success_url: "http://localhost:8000/success_payment",
+      fail_url: "http://localhost:8000/fail_payment",
+      cancel_url: "http://localhost:8000/cancel_payment",
+      cus_name: "Customer Name",
+      cus_email: "cust@yahoo.com",
+      cus_add1: "Dhaka",
+      cus_add2: "Dhaka",
+      cus_city: "Dhaka",
+      cus_state: "Dhaka",
+      cus_postcode: 1000,
+      cus_country: "Bangladesh",
+      cus_phone: "01711111111",
+      cus_fax: "01711111111",
+      shipping_method: "NO",
+      product_category : "mobile",
+      product_profile : "general",
+      product_name : "mobile",
+      multi_card_name: "mastercard,visacard,amexcard",
+      value_a: "ref001_A",
+      value_b: "ref002_B",
+      value_c: "ref003_C",
+      value_d: "ref004_D"
+    }
+    const response = await axios({
+      method:"POST",
+      url: "https://sandbox.sslcommerz.com/gwprocess/v4/api.php",
+      data:initiateData,
+      headers:{
+        "Content-Type": "application/x-www-form-urlencoded",
+      }
+
+    })
+    //save payment data on mongodb
+    const saveData = {
+      cus_name : "sarajit",
+      paymentId : tranId,
+      amount : paymentInfo.amount,
+      status: "Pending",
+    }
+    const result =await dbSslPaymentCollection.insertOne(saveData);
+    if(result){
+      res.send({
+        paymentUrl : response.data.GatewayPageURL
+      })
+    }
+  
+   })
+
+   //sslSuccess  payment
+   app.post('/success_payment',async(req,res)=>{
+    const successData = req.body;
+    if(successData.status !== "VALID"){
+      throw new Error("UnAuthorized Payment, invalid Payment")
+    }
+   const query = {paymentId : successData.tran_id}
+   const update ={
+    $set :{
+      status : "Success"
+    }
+   }
+   const result =await dbSslPaymentCollection.updateOne(query,update)
+   if(result){
+    res.redirect('http://localhost:5173/success_payment')
+
+   }
+   })
+   //sslCancel  payment
+   app.post('/cancel_payment',async(req,res)=>{
+    const successData = req.body;
+   const query = {paymentId : successData.tran_id}
+ 
+   const result =await dbSslPaymentCollection.deleteOne(query)
+   if(result){
+    res.redirect('http://localhost:5173/cancel_payment')
+  
+   }
+   })
+   //sslFail  payment
+   app.post('/fail_payment',async(req,res)=>{
+    const successData = req.body;
+    const query = {paymentId : successData.tran_id}
+  
+    const result =await dbSslPaymentCollection.deleteOne(query)
+    if(result){
+     res.redirect('http://localhost:5173/fail_payment')
+    }
+   })
+
+
    //save booking data
    //save booking data
    //save booking data
@@ -371,6 +476,6 @@ app.get('/', (req, res) => {
            
 
 app.listen(port, () => {
-  console.log(`careCamp is running on port http://localhost:${port}`)
+  //(`careCamp is running on port http://localhost:${port}`)
 })
 
